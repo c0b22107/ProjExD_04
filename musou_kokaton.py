@@ -96,6 +96,10 @@ class Bird(pg.sprite.Sprite):
                 self.rect.move_ip(+self.speed*mv[0], +self.speed*mv[1])
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
+                if key_lst[pg.K_LSHIFT] and (key_lst[pg.K_UP] or key_lst[pg.K_DOWN] or key_lst[pg.K_LEFT] or key_lst[pg.K_RIGHT]):
+                    self.speed = 20
+                else:
+                    self.speed = 10
         if check_bound(self.rect) != (True, True):
             for k, mv in __class__.delta.items():
                 if key_lst[k]:
@@ -281,6 +285,19 @@ class EMP:
             self.screen.blit(overlay, (0, 0))
             pg.display.update()
             time.sleep(0.05)
+            
+class Gravity(pg.sprite.Sprite):
+    def __init__(self, life: int = 400):
+        super().__init__()
+        self.life = life
+        self.image = pg.Surface((WIDTH, HEIGHT), pg.SRCALPHA)
+        self.image.fill((0, 0, 0, 128))
+        self.rect = self.image.get_rect()
+
+    def update(self):
+        self.life -= 1
+        if self.life < 0:
+            self.kill()
 
 
 def main():
@@ -294,6 +311,7 @@ def main():
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+    gravity_fields = pg.sprite.Group()
 
     emp_effect = EMP(emys, bombs, screen, score)
 
@@ -307,9 +325,15 @@ def main():
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
+                
             if event.type == pg.KEYDOWN and event.key == pg.K_e:
                 emp_effect.activate()
 
+            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
+                if score.value >= 200 and not gravity_fields:
+                    score.value -= 200
+                    gravity_fields.add(Gravity())
+                    
         screen.blit(bg_img, [0, 0])
 
         if tmr % 200 == 0:  # 200フレームに1回，敵機を出現させる
@@ -335,6 +359,15 @@ def main():
             pg.display.update()
             time.sleep(2)
             return
+        if gravity_fields:
+            for bomb in bombs:
+                exps.add(Explosion(bomb, 50))
+                bomb.kill()
+                score.value += 1
+            for emy in emys:
+                exps.add(Explosion(emy, 100))
+                emy.kill()
+                score.value += 10
 
         bird.update(key_lst, screen)
         beams.update()
@@ -346,6 +379,9 @@ def main():
         exps.update()
         exps.draw(screen)
         score.update(screen)
+        gravity_fields.update()
+        gravity_fields.draw(screen)
+
         pg.display.update()
         tmr += 1
         clock.tick(50)
