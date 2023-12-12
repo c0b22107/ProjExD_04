@@ -318,8 +318,13 @@ def main():
             return
         if gravity_fields:
             for bomb in bombs:
-                bombs.remove(bomb)
                 exps.add(Explosion(bomb, 50))
+                bomb.kill()
+                score.value += 1
+            for emy in emys:
+                exps.add(Explosion(emy, 100))
+                emy.kill()
+                score.value += 10
 
         bird.update(key_lst, screen)
         beams.update()
