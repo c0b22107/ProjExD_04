@@ -258,6 +258,7 @@ class Score:
 
 class EMP:
     def __init__(self, emys, bombs, screen, score):
+
         self.emys = emys
         self.bombs = bombs
         self.screen = screen
@@ -274,9 +275,9 @@ class EMP:
             for bomb in self.bombs:
                 bomb.speed /= 2
 
-            # Display visual effect
+            # effect
             overlay = pg.Surface((WIDTH, HEIGHT), pg.SRCALPHA)
-            overlay.fill((255, 255, 0, 128))  # Yellow with some transparency
+            overlay.fill((255, 255, 0, 128))
             self.screen.blit(overlay, (0, 0))
             pg.display.update()
             time.sleep(0.05)
