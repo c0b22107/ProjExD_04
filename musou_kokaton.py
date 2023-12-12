@@ -388,10 +388,6 @@ def main():
                     score.value -= 50
                     shields.add(Shield(bird))
 
-        screen.blit(bg_img, [0, 0])
-
-        if tmr % 200 == 0:  # 200フレームに1回，敵機を出現させる
-                
             if event.type == pg.KEYDOWN and event.key == pg.K_e:
                 emp_effect.activate()
 
@@ -399,7 +395,9 @@ def main():
                 if score.value >= 200 and not gravity_fields:
                     score.value -= 200
                     gravity_fields.add(Gravity())
-                    
+        
+
+                
         screen.blit(bg_img, [0, 0])
 
         #feature4
@@ -409,8 +407,6 @@ def main():
             score.value -= 10
 
         if tmr % 200 == 0:  # 200フレームに1回，敵機を出現させる
-
-
             emys.add(Enemy())
 
         for emy in emys:
@@ -427,19 +423,14 @@ def main():
             exps.add(Explosion(bomb, 50))  # 爆発エフェクト
             score.value += 1  # 1点アップ
 
-        if len(pg.sprite.spritecollide(bird, bombs, True)) != 0:
-            bird.change_img(8, screen)  # こうかとん悲しみエフェクト
-            score.update(screen)
-            pg.display.update()
-            time.sleep(2)
-            return
+
         for bomb in pg.sprite.groupcollide(bombs, shields, True, False).keys():
             exps.add(Explosion(bomb, 50))  # 爆発エフェクト
             score.value += 1  # 1点アップ
 
         
         
-        #if pg.sprite.spritecollide(bird, bombs, True):
+        
         for bomb in pg.sprite.spritecollide(bird,bombs , True):
             if bird.state == "hyper":
                 exps.add(Explosion(bomb, 100))
