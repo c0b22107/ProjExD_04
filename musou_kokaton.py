@@ -135,6 +135,7 @@ class Bomb(pg.sprite.Sprite):
         self.rect.centerx = emy.rect.centerx
         self.rect.centery = emy.rect.centery+emy.rect.height/2
         self.speed = 6
+        self.stopped = False
 
     def update(self):
         """
@@ -144,6 +145,10 @@ class Bomb(pg.sprite.Sprite):
         self.rect.move_ip(+self.speed*self.vx, +self.speed*self.vy)
         if check_bound(self.rect) != (True, True):
             self.kill()
+        if not self.stopped:
+            self.rect.move_ip(+self.speed*self.vx*0.5, +self.speed*self.vy*0.5)
+            if check_bound(self.rect) != (True, True):
+                self.kill()
 
 
 class Beam(pg.sprite.Sprite):
@@ -255,6 +260,32 @@ class Score:
         screen.blit(self.image, self.rect)
 
 
+class EMP:
+    def __init__(self, emys, bombs, screen, score):
+
+        self.emys = emys
+        self.bombs = bombs
+        self.screen = screen
+        self.score = score
+
+    def activate(self):
+        if self.score.value >= 20:
+            self.score.value -= 20
+            for enemy in self.emys:
+                enemy.image = pg.transform.laplacian(enemy.image)
+                enemy.image.set_colorkey((0, 0, 0))
+                enemy.interval = 100000
+
+            for bomb in self.bombs:
+                bomb.speed /= 2
+
+            # effect
+            overlay = pg.Surface((WIDTH, HEIGHT), pg.SRCALPHA)
+            overlay.fill((255, 255, 0, 128))
+            self.screen.blit(overlay, (0, 0))
+            pg.display.update()
+            time.sleep(0.05)
+            
 class Gravity(pg.sprite.Sprite):
     def __init__(self, life: int = 400):
         super().__init__()
@@ -282,19 +313,27 @@ def main():
     emys = pg.sprite.Group()
     gravity_fields = pg.sprite.Group()
 
+    emp_effect = EMP(emys, bombs, screen, score)
+
     tmr = 0
     clock = pg.time.Clock()
     while True:
+
         key_lst = pg.key.get_pressed()
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
+                
+            if event.type == pg.KEYDOWN and event.key == pg.K_e:
+                emp_effect.activate()
+
             if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
                 if score.value >= 200 and not gravity_fields:
                     score.value -= 200
                     gravity_fields.add(Gravity())
+                    
         screen.blit(bg_img, [0, 0])
 
         if tmr % 200 == 0:  # 200フレームに1回，敵機を出現させる
